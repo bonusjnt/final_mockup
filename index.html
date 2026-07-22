@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GLOWcery — Full Product Flow (Existing Role + Customer Role)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ===== Design tokens — sampled directly from the real GLOWcery Figma export (PDF) ===== */
+    --primary: #2EAD94;          /* teal green — buttons, selected borders/text, brand mark */
+    --primary-dark: #127763;     /* deep teal — hero / check-in header */
+    --soft: #E0F7F2;             /* pale mint — selected fill, chips, stat highlight */
+    --accent-yellow: #FFC72C;    /* rating pentagons */
+    --danger: #DC2626;
+    --danger-soft: #FDEAEA;
+    --warning: #D97706;
+    --bg: #F7F7F7;               /* app background — sampled exact */
+    --card: #FFFFFF;
+    --border: #E0E0E0;           /* sampled exact */
+    --text: #1A1A1A;
+    --text-secondary: #6B7280;
+    --text-tertiary: #9CA3AF;
+    --radius-lg: 22px;
+    --radius-md: 16px;
+    --radius-sm: 10px;
+    --radius-pill: 999px;
+    --shadow-card: 0 2px 10px rgba(16,24,32,0.05);
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:var(--font); background:#EDEDEF; color:var(--text); -webkit-font-smoothing:antialiased; }
+
+  /* ============ Page chrome (review harness, not part of the design system) ============ */
+  .page-header{ padding:28px 32px 8px; max-width:1500px; margin:0 auto; }
+  .page-header h1{ font-size:20px; font-weight:800; }
+  .page-header p{ font-size:13px; color:var(--text-secondary); margin-top:4px; max-width:760px; }
+  .group-label{ font-size:11px; font-weight:800; color:var(--text-tertiary); letter-spacing:.6px; margin:18px 32px 8px; text-transform:uppercase; }
+  .tabs{ display:flex; gap:8px; flex-wrap:wrap; padding:0 32px 6px; max-width:1500px; margin:0 auto; }
+  .tab{ font-family:var(--font); font-size:12.5px; font-weight:600; padding:8px 14px; border-radius:var(--radius-pill); border:1px solid var(--border); background:#fff; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; white-space:nowrap; }
+  .tab.active{ background:var(--primary); border-color:var(--primary); color:#fff; }
+  .tab:hover:not(.active){ border-color:var(--primary); color:var(--primary); }
+  .stage{ display:flex; justify-content:center; align-items:flex-start; padding:20px 32px 80px; }
+
+  /* ============ Phone frame ============ */
+  .phone{ width:375px; height:812px; background:var(--bg); border-radius:44px; box-shadow:0 0 0 10px #111, 0 20px 60px rgba(0,0,0,0.35); overflow:hidden; position:relative; display:none; flex-direction:column; }
+  .phone.active{ display:flex; }
+  .statusbar{ height:44px; flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:0 24px; font-size:14px; font-weight:600; color:var(--text); background:var(--bg); }
+  .statusbar.onwhite{ background:#fff; }
+  .statusbar.dark{ background:var(--primary-dark); color:#fff; }
+  .statusbar .icons{ display:flex; gap:5px; align-items:center; font-size:12px; }
+  .screen-scroll{ flex:1 1 auto; overflow-y:auto; padding:4px 20px 100px; }
+  .screen-scroll.nopad-top{ padding-top:0; }
+  .screen-scroll::-webkit-scrollbar{ display:none; }
+
+  /* ============ Shared components ============ */
+  .topbar{ display:flex; align-items:center; gap:12px; padding:6px 2px 14px; }
+  .icon-btn{ width:38px; height:38px; border-radius:var(--radius-pill); background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-card); border:1px solid var(--border); cursor:pointer; flex:0 0 auto; }
+  .brand-tag{ font-size:12.5px; font-weight:700; color:var(--primary); margin-bottom:2px; }
+  .topbar h2{ font-size:21px; font-weight:800; color:var(--text); line-height:1.25; }
+  .topbar .sub{ font-size:12.5px; color:var(--text-secondary); font-weight:500; margin-top:2px; }
+
+  .card{ background:var(--card); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); border:1px solid var(--border); padding:20px; margin-bottom:16px; }
+
+  .badge{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; padding:5px 12px; border-radius:var(--radius-pill); letter-spacing:.2px; }
+  .badge.green{ background:var(--soft); color:var(--primary-dark); }
+
+  .chip{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:7px 13px; border-radius:var(--radius-pill); background:#F1F1F2; color:#4B5563; border:1.5px solid transparent; }
+  .chip.outline{ background:#fff; border-color:var(--border); color:var(--text-secondary); }
+  .chip.outline.selected{ background:#fff; border-color:var(--primary); color:var(--primary); }
+  .chip.tag-protein{ background:var(--soft); color:var(--primary-dark); }
+  .chip.tag-sodium{ background:#E9F2FF; color:#1D4ED8; }
+  .chip.tag-sugar{ background:#FFF3E0; color:var(--warning); }
+  .chip.tag-veg{ background:#F1FBEA; color:#3E8E2F; }
+  .chip.selected{ background:var(--primary); color:#fff; }
+  .chip.allergen{ background:var(--danger-soft); color:var(--danger); }
+
+  .btn{ font-family:var(--font); font-size:15px; font-weight:700; border-radius:var(--radius-pill); border:none; cursor:pointer; padding:15px 20px; width:100%; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform .1s ease, opacity .15s ease; }
+  .btn:active{ transform:scale(.97); }
+  .btn-primary{ background:var(--primary); color:#fff; }
+  .btn-outline{ background:#fff; color:var(--primary); border:1.5px solid var(--primary); }
+  .btn-ghost-danger{ background:transparent; color:var(--danger); font-weight:600; }
+  .btn-sm{ padding:10px 16px; font-size:13px; width:auto; }
+
+  .row{ display:flex; align-items:center; } .row.between{ justify-content:space-between; }
+  .row.gap8{ gap:8px; } .row.gap10{ gap:10px; } .row.gap12{ gap:12px; }
+
+  .stat{ flex:1; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:14px 16px; }
+  .stat .label{ font-size:11px; color:var(--text-secondary); font-weight:600; margin-bottom:6px; }
+  .stat .value{ font-size:17px; font-weight:800; }
+
+  .progress-track{ height:8px; background:#EAEAEA; border-radius:var(--radius-pill); overflow:hidden; }
+  .progress-fill{ height:100%; background:#4ADE80; border-radius:var(--radius-pill); }
+
+  .section-title{ font-size:14px; font-weight:800; color:var(--text); margin:22px 0 12px; }
+  .sticky-cta{ position:absolute; left:0; right:0; bottom:0; padding:14px 20px 26px; background:linear-gradient(to top, var(--bg) 60%, transparent); }
+
+  .bottomnav{ position:absolute; left:0; right:0; bottom:0; background:#fff; border-top:1px solid var(--border); display:flex; padding:10px 8px 22px; }
+  .navitem{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10.5px; font-weight:600; color:var(--text-tertiary); cursor:pointer; }
+  .navitem.active{ color:var(--primary); }
+  .navitem svg{ width:22px; height:22px; }
+
+  /* ---- step progress bar (onboarding) ---- */
+  .step-progress{ display:flex; gap:6px; margin:14px 0 8px; }
+  .step-seg{ flex:1; height:5px; border-radius:3px; background:#E5E5E5; }
+  .step-seg.filled{ background:var(--primary); }
+  .step-label{ text-align:center; font-size:11.5px; color:var(--text-secondary); font-weight:600; margin-bottom:18px; }
+
+  /* ---- segmented two/four column toggle ---- */
+  .segmented{ display:flex; gap:10px; margin-bottom:18px; }
+  .segmented .seg{ flex:1; text-align:center; padding:14px 8px; border-radius:14px; border:1.5px solid var(--border); font-weight:700; font-size:13.5px; color:var(--text-secondary); cursor:pointer; background:#fff; }
+  .segmented .seg.selected{ border-color:var(--primary); color:var(--primary); }
+
+  /* ---- text inputs ---- */
+  .field-label{ font-size:13px; font-weight:700; margin-bottom:8px; }
+  .input-field{ width:100%; border:1.5px solid var(--border); border-radius:14px; padding:14px 16px; font-size:14px; font-family:var(--font); color:var(--text); background:#fff; }
+  .input-field::placeholder{ color:var(--text-tertiary); }
+  .field-row{ display:flex; gap:12px; margin-bottom:18px; }
+  .field-col{ flex:1; }
+
+  /* ---- highlighted stat (BMI) ---- */
+  .stat-highlight{ background:var(--soft); border-radius:16px; padding:16px 18px; display:flex; gap:32px; margin:6px 0 20px; }
+  .stat-highlight .col .l{ font-size:11px; color:var(--text-secondary); font-weight:600; }
+  .stat-highlight .col .v{ font-size:20px; font-weight:800; color:var(--primary-dark); margin-top:2px; }
+
+  /* ---- radio option card ---- */
+  .option-card{ border:1.5px solid var(--border); border-radius:16px; padding:16px; margin-bottom:12px; display:flex; gap:12px; align-items:flex-start; cursor:pointer; background:#fff; }
+  .option-card.selected{ border-color:var(--primary); background:var(--soft); }
+  .radio-circle{ width:22px; height:22px; border-radius:50%; border:2px solid #D1D5DB; flex:0 0 auto; margin-top:1px; position:relative; background:#fff; }
+  .option-card.selected .radio-circle{ border-color:var(--primary); }
+  .option-card.selected .radio-circle::after{ content:''; position:absolute; inset:4px; border-radius:50%; background:var(--primary); }
+  .option-title{ font-size:14.5px; font-weight:700; }
+  .option-sub{ font-size:12px; color:var(--text-secondary); margin-top:2px; }
+
+  /* ---- checklist item with emoji icon ---- */
+  .check-item{ display:flex; align-items:center; gap:12px; border:1.5px solid var(--border); border-radius:14px; padding:13px 14px; margin-bottom:10px; cursor:pointer; background:#fff; }
+  .check-item.selected{ border-color:var(--primary); background:var(--soft); }
+  .check-item .emoji-circle{ width:38px; height:38px; border-radius:50%; background:#F1F1F2; display:flex; align-items:center; justify-content:center; font-size:17px; flex:0 0 auto; }
+  .check-item .txt{ flex:1; }
+  .check-item .txt .t{ font-size:13.5px; font-weight:700; }
+  .check-item .txt .s{ font-size:11px; color:var(--text-secondary); margin-top:1px; }
+  .check-item .checkbox{ width:22px; height:22px; border-radius:6px; border:2px solid #D1D5DB; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; background:#fff; }
+  .check-item.selected .checkbox{ background:var(--primary); border-color:var(--primary); }
+  .cat-label{ font-size:11px; font-weight:800; color:var(--text-tertiary); letter-spacing:.5px; margin:16px 0 8px; text-transform:uppercase; }
+
+  .info-banner{ background:#FFF3E0; border-radius:14px; padding:12px 14px; font-size:11.5px; color:#92600A; display:flex; gap:8px; margin-bottom:16px; line-height:1.5; }
+  .info-banner.mint{ background:var(--soft); color:var(--primary-dark); }
+
+  /* ---- slider (visual only) ---- */
+  .slider-row{ margin-bottom:22px; }
+  .slider-row .lbl{ font-size:14px; font-weight:700; margin-bottom:14px; }
+  .slider-track{ height:5px; background:#E5E5E5; border-radius:3px; position:relative; margin:0 0 8px; }
+  .slider-fill{ position:absolute; left:0; top:0; height:100%; background:var(--primary); border-radius:3px; }
+  .slider-thumb{ position:absolute; top:50%; width:20px; height:20px; border-radius:50%; background:#fff; border:2.5px solid var(--primary); transform:translate(-50%,-50%); box-shadow:var(--shadow-card); }
+  .slider-labels{ display:flex; justify-content:space-between; font-size:11.5px; color:var(--text-secondary); font-weight:600; }
+
+  /* ---- toggle switch ---- */
+  .toggle-row{ display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border); }
+  .toggle-row:last-child{ border-bottom:none; }
+  .toggle-row .t{ font-size:13.5px; font-weight:700; }
+  .toggle-row .s{ font-size:11px; color:var(--text-secondary); margin-top:2px; }
+  .switch{ width:44px; height:26px; border-radius:13px; background:#D9D9D9; position:relative; flex:0 0 auto; cursor:pointer; }
+  .switch.on{ background:var(--primary); }
+  .switch::after{ content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:left .15s; }
+  .switch.on::after{ left:21px; }
+
+  /* ---- lab result row ---- */
+  .lab-row{ border:1.5px solid var(--border); border-radius:14px; padding:14px 16px; margin-bottom:12px; background:#fff; }
+  .lab-row.filled{ border-color:var(--primary); }
+  .lab-row .top{ display:flex; justify-content:space-between; align-items:baseline; }
+  .lab-row .name{ font-size:13.5px; font-weight:700; }
+  .lab-row .th{ font-size:11px; color:var(--text-secondary); }
+  .lab-row .inputval{ display:flex; align-items:center; gap:8px; margin-top:10px; }
+  .lab-row .valbox{ flex:1; border:1.5px solid var(--border); border-radius:10px; padding:8px 12px; font-size:14px; font-weight:700; color:var(--text); }
+  .lab-row.filled .valbox{ border-color:var(--primary); color:var(--primary-dark); }
+  .lab-row .unit{ font-size:11.5px; color:var(--text-secondary); font-weight:600; background:#F5F5F6; border-radius:8px; padding:8px 10px; }
+  .lab-row .normal{ font-size:10.5px; color:var(--primary); font-weight:700; margin-top:6px; }
+
+  .wearable-row{ display:flex; align-items:center; gap:12px; border:1.5px solid var(--border); border-radius:14px; padding:14px; margin-bottom:10px; background:#fff; }
+  .wearable-row .ic{ width:38px; height:38px; border-radius:10px; background:#F1F1F2; display:flex; align-items:center; justify-content:center; font-size:18px; flex:0 0 auto; }
+  .wearable-row .txt{ flex:1; }
+  .wearable-row .t{ font-size:13px; font-weight:700; }
+  .wearable-row .s{ font-size:11px; color:var(--text-secondary); }
+  .connect-btn{ font-size:12px; font-weight:700; color:var(--primary); border:1.5px solid var(--primary); border-radius:999px; padding:7px 15px; background:#fff; cursor:pointer; }
+
+  /* ---- weekly check-in hero + rating pentagons ---- */
+  .checkin-hero{ background:var(--primary-dark); color:#fff; padding:22px 20px 28px; margin:0 -20px 20px; }
+  .checkin-hero h2{ font-size:22px; font-weight:800; }
+  .checkin-hero .meta{ font-size:13px; opacity:.85; margin-top:6px; }
+  .checkin-hero .sub{ font-size:13px; opacity:.85; margin-top:8px; }
+  .rating-row{ margin-bottom:22px; }
+  .rating-row .lbl{ font-size:14px; font-weight:700; margin-bottom:12px; }
+  .pentagons{ display:flex; gap:10px; }
+  .pentagon{ width:42px; height:42px; background:#DCDCDC; clip-path:polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); cursor:pointer; }
+  .pentagon.filled{ background:var(--accent-yellow); }
+  .chip-removable{ display:inline-flex; align-items:center; gap:8px; background:var(--soft); color:var(--primary-dark); border:1.5px solid var(--primary); border-radius:999px; padding:8px 14px; font-size:12.5px; font-weight:600; margin:0 8px 8px 0; }
+  .chip-removable .x{ font-size:13px; cursor:pointer; color:var(--text-secondary); }
+  .textarea-field{ width:100%; border:1.5px solid var(--border); border-radius:14px; padding:14px 16px; font-size:13px; font-family:var(--font); min-height:64px; resize:none; color:var(--text); background:#fff; }
+  .add-field{ width:100%; border:1.5px solid var(--border); border-radius:999px; padding:12px 16px; font-size:12.5px; color:var(--text-tertiary); font-weight:600; background:#fff; margin-bottom:18px; }
+
+  /* ============ Customer-flow specific ============ */
+  .plan-hero{ background:linear-gradient(135deg, var(--primary-dark), var(--primary)); border-radius:var(--radius-lg); padding:22px; color:#fff; margin-bottom:16px; box-shadow:var(--shadow-card); }
+  .plan-hero .top{ display:flex; justify-content:space-between; align-items:flex-start; }
+  .plan-hero .plan-name{ font-size:18px; font-weight:800; margin-top:2px; }
+  .plan-hero .plan-meta{ font-size:12px; opacity:.8; margin-top:2px; }
+  .plan-hero .status-pill{ background:rgba(255,255,255,.18); font-size:11px; font-weight:700; padding:5px 12px; border-radius:var(--radius-pill); display:flex; align-items:center; gap:6px; }
+  .plan-hero .status-pill::before{ content:''; width:6px; height:6px; border-radius:50%; background:#4ADE80; }
+  .plan-hero .meals-row{ margin-top:18px; }
+  .plan-hero .meals-row .num{ font-size:26px; font-weight:800; }
+  .plan-hero .meals-row .lbl{ font-size:11px; opacity:.75; }
+  .hero-progress{ height:8px; background:rgba(255,255,255,.2); border-radius:var(--radius-pill); margin-top:10px; overflow:hidden; }
+  .hero-progress .fill{ height:100%; background:#4ADE80; border-radius:var(--radius-pill); }
+  .history-row{ display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); }
+  .history-row:last-child{ border-bottom:none; }
+  .history-row .d{ font-size:13px; font-weight:700; }
+  .history-row .s{ font-size:11px; color:var(--text-secondary); }
+
+  .day-strip{ display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:6px; }
+  .day-pill{ flex:0 0 auto; width:46px; height:60px; border-radius:16px; background:#fff; border:1px solid var(--border); box-shadow:var(--shadow-card); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; }
+  .day-pill .d{ font-size:10px; font-weight:700; color:var(--text-tertiary); }
+  .day-pill .n{ font-size:15px; font-weight:800; }
+  .day-pill.active{ background:var(--primary); border-color:var(--primary); }
+  .day-pill.active .d, .day-pill.active .n{ color:#fff; }
+
+  .meal-card{ background:var(--card); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); overflow:hidden; margin-bottom:16px; border:2px solid var(--border); cursor:pointer; }
+  .meal-card.selected{ border-color:var(--primary); }
+  .meal-photo{ height:140px; display:flex; align-items:center; justify-content:center; font-size:44px; position:relative; }
+  .meal-photo .check{ position:absolute; top:10px; right:10px; width:26px; height:26px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; opacity:0; transform:scale(.6); transition:all .15s ease; }
+  .meal-card.selected .check{ opacity:1; transform:scale(1); }
+  .meal-body{ padding:16px; }
+  .meal-body h3{ font-size:15px; font-weight:800; margin-bottom:8px; }
+  .macro-row{ display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+  .macro{ font-size:11px; font-weight:700; color:var(--text-secondary); background:#F5F5F6; padding:5px 9px; border-radius:8px; }
+  .tag-row{ display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+  .ingredient-preview{ font-size:11.5px; color:var(--text-tertiary); margin-bottom:12px; line-height:1.5; }
+
+  .date-strip{ display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; }
+  .date-card{ flex:0 0 auto; width:58px; padding:12px 0; border-radius:16px; background:#fff; border:1.5px solid var(--border); display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; }
+  .date-card .d{ font-size:10px; font-weight:700; color:var(--text-tertiary); }
+  .date-card .n{ font-size:17px; font-weight:800; }
+  .date-card.selected{ background:var(--primary); border-color:var(--primary); }
+  .date-card.selected .d, .date-card.selected .n{ color:#fff; }
+  .date-card.unavailable{ opacity:.4; cursor:not-allowed; }
+  .date-card.unavailable .n{ text-decoration:line-through; }
+  .legend{ display:flex; gap:16px; margin:14px 0 6px; }
+  .legend .item{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-secondary); font-weight:600; }
+  .legend .dot{ width:9px; height:9px; border-radius:50%; }
+  .legend .dot.avail{ background:var(--primary); opacity:.35; }
+  .legend .dot.unavail{ background:#D1D5DB; }
+  .legend .dot.sel{ background:var(--primary); }
+  .arrival-card{ background:var(--soft); border-radius:var(--radius-md); padding:16px; margin-top:16px; display:flex; gap:12px; align-items:flex-start; }
+  .arrival-card .ic{ width:36px; height:36px; border-radius:10px; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+  .arrival-card .t{ font-size:11px; font-weight:700; color:var(--primary-dark); }
+  .arrival-card .v{ font-size:13.5px; font-weight:700; color:var(--text); margin-top:2px; }
+
+  .addr-card{ display:flex; gap:12px; align-items:center; }
+  .addr-card .ic{ width:40px; height:40px; border-radius:12px; background:var(--soft); color:var(--primary-dark); display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+  .addr-card .label{ font-size:11px; font-weight:700; color:var(--text-secondary); }
+  .addr-card .value{ font-size:13px; font-weight:600; margin-top:2px; line-height:1.4; }
+  .addr-card .change{ font-size:12px; font-weight:700; color:var(--primary); cursor:pointer; }
+
+  .slot{ display:flex; align-items:center; justify-content:space-between; background:#fff; border-radius:var(--radius-md); padding:16px 18px; margin-bottom:12px; box-shadow:var(--shadow-card); cursor:pointer; border:1.5px solid var(--border); }
+  .slot.selected{ border-color:var(--primary); background:var(--soft); }
+  .slot .time{ font-size:14.5px; font-weight:700; }
+  .slot .avail{ font-size:11px; color:var(--text-secondary); margin-top:2px; }
+  .slot .radio{ width:20px; height:20px; border-radius:50%; border:2px solid #D1D5DB; flex:0 0 auto; position:relative; background:#fff; }
+  .slot.selected .radio{ border-color:var(--primary); background:var(--primary); }
+  .slot.selected .radio::after{ content:'✓'; color:#fff; font-size:11px; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+
+  .order-mini{ display:flex; gap:12px; align-items:center; }
+  .order-mini .thumb{ width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:24px; background:var(--soft); flex:0 0 auto; }
+  .order-mini h4{ font-size:14px; font-weight:800; }
+  .order-mini .oid{ font-size:11px; color:var(--text-secondary); margin-top:2px; }
+
+  .timeline{ position:relative; padding-left:36px; margin-top:6px; }
+  .tl-item{ position:relative; padding-bottom:22px; }
+  .tl-item:last-child{ padding-bottom:0; }
+  .tl-item::before{ content:''; position:absolute; left:-24px; top:26px; bottom:-4px; width:2px; background:var(--border); }
+  .tl-item:last-child::before{ display:none; }
+  .tl-item.done::before{ background:var(--primary); }
+  .tl-dot{ position:absolute; left:-36px; top:0; width:26px; height:26px; border-radius:50%; background:#fff; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--text-tertiary); }
+  .tl-item.done .tl-dot{ background:var(--primary); border-color:var(--primary); color:#fff; }
+  .tl-item.current .tl-dot{ background:var(--primary-dark); border-color:var(--primary-dark); color:#fff; box-shadow:0 0 0 5px var(--soft); }
+  .tl-card{ background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-card); border:1px solid var(--border); padding:14px 16px; }
+  .tl-item.upcoming .tl-card{ background:#FAFAFA; box-shadow:none; }
+  .tl-top{ display:flex; justify-content:space-between; align-items:center; }
+  .tl-stage{ font-size:13.5px; font-weight:800; }
+  .tl-status{ font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:var(--radius-pill); }
+  .tl-status.done{ background:var(--soft); color:var(--primary-dark); }
+  .tl-status.current{ background:#FFF3E0; color:var(--warning); }
+  .tl-status.upcoming{ background:#F0F0F1; color:var(--text-tertiary); }
+  .tl-meta{ font-size:11.5px; color:var(--text-secondary); margin-top:6px; line-height:1.5; }
+
+  .nutri-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:8px; }
+  .nutri-cell{ background:#F7F7F8; border-radius:var(--radius-sm); padding:10px; text-align:center; }
+  .nutri-cell .v{ font-size:15px; font-weight:800; }
+  .nutri-cell .l{ font-size:10px; color:var(--text-secondary); font-weight:600; margin-top:2px; }
+  .detail-row{ margin-top:16px; }
+  .detail-row .h{ font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:6px; }
+  .detail-row .txt{ font-size:12.5px; color:var(--text); line-height:1.6; }
+  .food-hero{ height:150px; border-radius:var(--radius-lg) var(--radius-lg) 0 0; display:flex; align-items:center; justify-content:center; font-size:52px; background:linear-gradient(135deg,#FDE9C9,#FBD388); }
+
+  .flow-note{ font-size:11px; color:var(--text-tertiary); text-align:center; margin-top:10px; font-weight:600; padding-bottom:30px; }
+
+  /* ============ Screens 13–15 — Choose Plan (AI) / AI Weekly Menu / Food Analysis ============ */
+  .step-tag{ font-size:10px; font-weight:800; color:var(--primary); letter-spacing:.6px; text-transform:uppercase; margin-bottom:4px; }
+  .thin-progress{ height:3px; background:var(--border); border-radius:2px; margin:12px 0 4px; overflow:hidden; }
+  .thin-progress .f{ height:100%; background:var(--primary); border-radius:2px; }
+
+  .plan-pick{ border:1.5px solid var(--border); border-radius:16px; padding:16px; margin-bottom:14px; cursor:pointer; background:#fff; }
+  .plan-pick.selected{ border-color:var(--primary); background:var(--soft); }
+  .plan-pick-top{ display:flex; align-items:center; gap:10px; }
+  .plan-ic{ width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:19px; flex:0 0 auto; background:#F1F1F2; }
+  .plan-pick-info{ flex:1; }
+  .plan-pick-name{ font-size:15px; font-weight:800; }
+  .plan-pick-desc{ font-size:11px; color:var(--text-secondary); margin-top:1px; }
+  .rec-badge{ font-size:9px; font-weight:700; padding:3px 8px; border-radius:999px; background:var(--primary); color:#fff; letter-spacing:.3px; flex:0 0 auto; margin-right:6px; }
+  .plan-radio{ width:22px; height:22px; border-radius:50%; border:2px solid #D1D5DB; display:flex; align-items:center; justify-content:center; flex:0 0 auto; background:#fff; }
+  .plan-pick.selected .plan-radio{ background:var(--primary); border-color:var(--primary); color:#fff; font-size:12px; }
+  .plan-pick-detail{ margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:5px; }
+  .plan-feat{ display:flex; gap:7px; font-size:11.5px; color:#555; line-height:1.5; }
+  .plan-feat .tick{ color:var(--primary); font-weight:700; flex:0 0 auto; }
+  .plan-price{ margin-top:8px; display:flex; align-items:center; gap:8px; }
+  .plan-price .main{ font-size:17px; font-weight:800; }
+  .plan-price .unit{ font-size:11px; color:var(--text-secondary); }
+  .plan-price .save{ font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; background:var(--soft); color:var(--primary-dark); }
+
+  .ai-dark-card{ border-radius:16px; background:linear-gradient(135deg, #111827, var(--primary-dark)); padding:16px 18px; display:flex; align-items:center; gap:12px; cursor:pointer; margin-bottom:16px; }
+  .ai-dark-card .ic{ width:44px; height:44px; border-radius:12px; background:rgba(46,173,148,.25); display:flex; align-items:center; justify-content:center; font-size:21px; flex:0 0 auto; }
+  .ai-dark-card .body{ flex:1; }
+  .ai-dark-card .t{ font-size:14px; font-weight:700; color:#fff; }
+  .ai-dark-card .s{ font-size:11px; color:rgba(255,255,255,.65); margin-top:2px; line-height:1.4; }
+  .ai-dark-card .cta{ font-size:11px; font-weight:700; color:var(--primary); padding:7px 12px; border-radius:8px; background:rgba(46,173,148,.18); white-space:nowrap; flex:0 0 auto; }
+
+  .menu-food-item{ border:1.5px solid var(--border); border-radius:14px; padding:13px 14px; background:#fff; display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; }
+  .menu-food-item.swapped{ border-color:var(--primary); background:var(--soft); }
+  .mf-dot{ width:8px; height:8px; border-radius:50%; margin-top:5px; flex:0 0 auto; }
+  .mf-body{ flex:1; }
+  .mf-name{ font-size:13.5px; font-weight:700; }
+  .mf-ing{ font-size:11px; color:var(--text-secondary); margin-top:2px; line-height:1.4; }
+  .mf-tags{ display:flex; gap:5px; margin-top:6px; flex-wrap:wrap; }
+  .mf-swap{ width:28px; height:28px; border-radius:50%; border:1.5px solid var(--border); background:#FAFAFA; display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; flex:0 0 auto; }
+
+  /* ---- screen 9 — weekly meal-pack builder (quantity per meal, sums to 7 days) ---- */
+  .qty-stepper{ display:flex; align-items:center; gap:10px; }
+  .qty-btn{ width:30px; height:30px; border-radius:50%; border:1.5px solid var(--border); background:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:var(--primary); cursor:pointer; padding:0; font-family:var(--font); }
+  .qty-btn:active{ transform:scale(.92); }
+  .qty-val{ font-size:15px; font-weight:800; min-width:16px; text-align:center; }
+  .qty-label{ font-size:10.5px; color:var(--text-tertiary); font-weight:600; }
+  .pack-progress-card{ background:var(--soft); border-radius:16px; padding:14px 16px; margin-bottom:16px; }
+  .pack-progress-card.warn{ background:#FFF3E0; }
+  .pack-progress-card.warn #packProgressText{ color:#92600A !important; }
+  .pack-progress-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px; }
+  .pack-progress-track{ height:8px; background:rgba(0,0,0,.08); border-radius:999px; overflow:hidden; }
+  .pack-progress-fill{ height:100%; background:var(--primary); border-radius:999px; transition:width .2s ease; }
+  .pack-progress-card.warn .pack-progress-fill{ background:var(--warning); }
+  .meal-card.zero-qty{ opacity:.55; }
+  .mf-swap.pack-toggle{ font-weight:800; font-size:14px; }
+  .menu-food-item.swapped .pack-toggle{ background:var(--primary); color:#fff; border-color:var(--primary); }
+
+  .order-card{ border:1.5px solid var(--border); border-radius:14px; padding:14px 16px; background:#FAFAFA; }
+  .order-line{ display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#555; margin-bottom:7px; }
+  .order-line span:last-child{ font-weight:700; color:var(--text); }
+  .order-line.warn span:last-child{ color:var(--danger); }
+  .order-total{ display:flex; justify-content:space-between; align-items:center; padding-top:10px; margin-top:6px; border-top:1px solid var(--border); }
+  .order-total .lbl{ font-size:14px; font-weight:700; }
+  .order-total .val{ font-size:21px; font-weight:800; color:var(--primary-dark); }
+
+  /* food analysis */
+  .ring-card{ background:linear-gradient(135deg, var(--primary-dark), var(--primary)); border-radius:20px; padding:22px; color:#fff; display:flex; align-items:center; gap:18px; margin-bottom:16px; }
+  .ring-wrap{ position:relative; width:100px; height:100px; flex:0 0 auto; }
+  .ring-wrap svg{ width:100px; height:100px; transform:rotate(-90deg); }
+  .ring-bg{ fill:none; stroke:rgba(255,255,255,.22); stroke-width:10; }
+  .ring-fg{ fill:none; stroke:#fff; stroke-width:10; stroke-linecap:round; stroke-dasharray:283; stroke-dashoffset:70; }
+  .ring-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ring-center .n{ font-size:22px; font-weight:800; line-height:1; }
+  .ring-center .l{ font-size:10px; opacity:.85; margin-top:2px; }
+  .ring-info h3{ font-size:12.5px; opacity:.85; font-weight:500; margin-bottom:4px; }
+  .ring-info .goal{ font-size:19px; font-weight:800; }
+  .ring-info .sub{ font-size:11.5px; opacity:.8; margin-top:3px; }
+
+  .score-wrap{ display:flex; align-items:center; gap:12px; }
+  .score-num{ font-size:32px; font-weight:800; color:var(--primary-dark); }
+  .score-bar-wrap{ flex:1; }
+  .score-bar-bg{ height:9px; background:#F0F0F0; border-radius:8px; overflow:hidden; margin:5px 0; }
+  .score-bar-fill{ height:100%; border-radius:8px; background:linear-gradient(90deg, var(--primary), var(--primary-dark)); }
+
+  .macro-grid{ display:flex; gap:10px; }
+  .macro-item{ flex:1; }
+  .macro-bar-bg{ height:6px; background:#F0F0F0; border-radius:4px; overflow:hidden; margin:6px 0 5px; }
+  .macro-bar-fill{ height:100%; border-radius:4px; }
+  .macro-val{ font-size:13.5px; font-weight:800; }
+  .macro-goal{ font-size:9.5px; color:var(--text-tertiary); }
+
+  .meal-row{ display:flex; align-items:center; gap:12px; padding:11px 12px; background:#F9F9F9; border-radius:14px; margin-bottom:8px; cursor:pointer; }
+  .meal-row .ic{ width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:19px; flex:0 0 auto; }
+  .meal-row .info{ flex:1; }
+  .meal-row .nm{ font-size:13px; font-weight:700; }
+  .meal-row .ds{ font-size:10.5px; color:var(--text-tertiary); margin-top:2px; }
+  .meal-row .kc{ font-size:13px; font-weight:800; color:var(--primary-dark); }
+
+  .nutrient-row{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .nutrient-name{ font-size:11.5px; color:#555; width:76px; flex:0 0 auto; }
+  .nutrient-bar-bg{ flex:1; height:7px; background:#F0F0F0; border-radius:4px; overflow:hidden; }
+  .nutrient-bar-fill{ height:100%; border-radius:4px; }
+  .nutrient-val{ font-size:11.5px; font-weight:700; width:52px; text-align:right; flex:0 0 auto; }
+
+  .water-row{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .water-glass{ width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; border:2px solid transparent; }
+  .water-glass.filled{ background:var(--soft); border-color:var(--primary); }
+  .water-glass.empty{ background:#F5F5F5; opacity:.4; }
+
+  .insight-item{ display:flex; align-items:flex-start; gap:8px; font-size:12.5px; color:#333; line-height:1.5; margin-bottom:8px; }
+  .insight-item .dot{ width:7px; height:7px; border-radius:50%; margin-top:5px; flex:0 0 auto; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>GLOWcery — Full Product Flow</h1>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-screen="biometric">1 · Biometric Info</button>
+  <button class="tab" data-screen="goals">2 · Wellness Goals</button>
+  <button class="tab" data-screen="lifestyle">3 · Lifestyle</button>
+  <button class="tab" data-screen="medical">4 · Medical Conditions</button>
+  <button class="tab" data-screen="restrictions">5 · Food Restrictions</button>
+  <button class="tab" data-screen="labs">6 · Lab Results</button>
+  <button class="tab" data-screen="checkin">7 · Weekly Check-in</button>
+  <button class="tab" data-screen="subscription">8 · Subscription</button>
+  <button class="tab" data-screen="menu">9 · Weekly Menu</button>
+  <button class="tab" data-screen="date">10 · Delivery Date</button>
+  <button class="tab" data-screen="time">11 · Delivery Time</button>
+  <button class="tab" data-screen="trace">12 · Meal Traceability</button>
+  <button class="tab" data-screen="plan2">13 · Choose Plan</button>
+  <button class="tab" data-screen="food">14 · Food Analysis</button>
+</div>
+
+<div class="stage">
+
+  <!-- ============================================================ SCREEN 1 — BIOMETRIC INFO (existing) ============================================================ -->
+  <div class="phone active" id="screen-biometric">
+    <div class="statusbar onwhite"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll" style="background:#fff; padding-top:4px;">
+      <div style="padding:2px 0 14px;">
+        <div class="brand-tag">GLOWcery</div>
+        <h2 style="font-size:24px;font-weight:800;">Tell us about yourself</h2>
+        <div class="sub" style="font-size:13px;">We'll use this to calculate your nutritional needs</div>
+        <div class="step-progress"><div class="step-seg filled"></div><div class="step-seg"></div><div class="step-seg"></div><div class="step-seg"></div><div class="step-seg"></div><div class="step-seg"></div></div>
+      </div>
+      <div style="background:var(--bg); margin:0 -20px; padding:16px 20px 0;">
+      <div class="step-label">Step 1 of 6</div>
+      <div class="field-label">Gender</div>
+      <div class="segmented">
+        <div class="seg selected">♂ Male</div>
+        <div class="seg">♀ Female</div>
+      </div>
+      <div class="field-row">
+        <div class="field-col"><div class="field-label">Age</div><div class="input-field">28</div></div>
+        <div class="field-col"><div class="field-label">Weight</div><div class="input-field">65</div></div>
+      </div>
+      <div class="field-label">Height</div>
+      <div class="input-field" style="margin-bottom:0;">168</div>
+      <div class="stat-highlight">
+        <div class="col"><div class="l">BMI</div><div class="v">22.3</div></div>
+        <div class="col"><div class="l">Daily Calories (BMR)</div><div class="v">1,680 kcal</div></div>
+      </div>
+      <div class="field-label" style="margin-bottom:12px;">Daily Activity Level</div>
+      <div class="option-card"><div class="radio-circle"></div><div><div class="option-title">Sedentary</div><div class="option-sub">Desk job, little movement</div></div></div>
+      <div class="option-card selected"><div class="radio-circle"></div><div><div class="option-title">Lightly Active</div><div class="option-sub">Walking, light errands</div></div></div>
+      <div class="option-card"><div class="radio-circle"></div><div><div class="option-title">Moderately Active</div><div class="option-sub">Exercise 3×/week</div></div></div>
+      <div class="option-card"><div class="radio-circle"></div><div><div class="option-title">Very Active</div><div class="option-sub">Exercise 6×/week</div></div></div>
+      <button class="btn btn-primary" style="margin-top:8px;" data-goto="goals">Continue →</button>
+      <div style="height:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ SCREEN 2 — WELLNESS GOALS (existing) ============================================================ -->
+  <div class="phone" id="screen-goals">
+    <div class="statusbar onwhite"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll" style="background:#fff;">
+      <div style="padding:2px 0 14px;">
+        <div class="brand-tag">GLOWcery</div>
+        <h2 style="font-size:24px;font-weight:800;">What are your wellness goals?</h2>
+        <div class="sub" style="font-size:13px;">Select all that apply — we'll personalise your plan</div>
+        <div class="step-progress"><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg"></div><div class="step-seg"></div><div class="step-seg"></div><div class="step-seg"></div></div>
+      </div>
+      <div style="background:var(--bg); margin:0 -20px; padding:16px 20px 0;">
+      <div class="step-label">Step 2 of 6</div>
+
+      <div class="check-item selected"><div class="emoji-circle">😴</div><div class="txt"><div class="t">Better Sleep</div><div class="s">Deeper, more restorative sleep</div></div><div class="checkbox">✓</div></div>
+      <div class="check-item selected"><div class="emoji-circle">⚡</div><div class="txt"><div class="t">More Energy</div><div class="s">Sustained energy throughout the day</div></div><div class="checkbox">✓</div></div>
+      <div class="check-item"><div class="emoji-circle">🔥</div><div class="txt"><div class="t">Reduce Inflammation</div><div class="s">Anti-inflammatory food choices</div></div><div class="checkbox"></div></div>
+      <div class="check-item"><div class="emoji-circle">✨</div><div class="txt"><div class="t">Glowing Skin</div><div class="s">Nutrients that support skin health</div></div><div class="checkbox"></div></div>
+      <div class="check-item selected"><div class="emoji-circle">🌿</div><div class="txt"><div class="t">Better Digestion</div><div class="s">Gut-friendly meal planning</div></div><div class="checkbox">✓</div></div>
+      <div class="check-item"><div class="emoji-circle">🛡️</div><div class="txt"><div class="t">Boost Immunity</div><div class="s">Strengthen your immune system</div></div><div class="checkbox"></div></div>
+
+      <div class="field-label" style="margin-top:8px;">Meals per day</div>
+      <div class="segmented">
+        <div class="seg">2</div><div class="seg selected">3</div><div class="seg">4</div><div class="seg">5+</div>
+      </div>
+      <button class="btn btn-primary" data-goto="lifestyle">Continue →</button>
+      <div style="height:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ SCREEN 3 — LIFESTYLE (existing) ============================================================ -->
+  <div class="phone" id="screen-lifestyle">
+    <div class="statusbar onwhite"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll" style="background:#fff;">
+      <div style="padding:2px 0 14px;">
+        <div class="brand-tag">GLOWcery</div>
+        <h2 style="font-size:24px;font-weight:800;">Your lifestyle</h2>
+        <div class="sub" style="font-size:13px;">Help us understand your daily routine</div>
+        <div class="step-progress"><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg"></div><div class="step-seg"></div><div class="step-seg"></div></div>
+      </div>
+      <div style="background:var(--bg); margin:0 -20px; padding:16px 20px 0;">
+
+      <div class="slider-row">
+        <div class="lbl">Stress Level</div>
+        <div class="slider-track"><div class="slider-fill" style="width:62%;"></div><div class="slider-thumb" style="left:62%;"></div></div>
+        <div class="slider-labels"><span>Calm</span><span>Very Stressed</span></div>
+      </div>
+      <div class="slider-row">
+        <div class="lbl">Exercise Intensity</div>
+        <div class="slider-track"><div class="slider-fill" style="width:50%;"></div><div class="slider-thumb" style="left:50%;"></div></div>
+        <div class="slider-labels"><span>Light</span><span>Intense</span></div>
+      </div>
+
+      <div class="field-label">Sleep per night</div>
+      <div class="row gap8" style="margin-bottom:18px; flex-wrap:wrap;">
+        <div class="chip outline">&lt; 5h</div><div class="chip outline">5–6h</div><div class="chip outline">6–7h</div><div class="chip outline selected">7–8h</div><div class="chip outline">8h+</div>
+      </div>
+
+      <div class="toggle-row"><div><div class="t">Desk job / sedentary work</div><div class="s">Sitting most of the day</div></div><div class="switch on"></div></div>
+      <div class="toggle-row"><div><div class="t">Trouble falling asleep</div></div><div class="switch"></div></div>
+      <div class="toggle-row"><div><div class="t">High stress lifestyle</div><div class="s">Work or personal stress</div></div><div class="switch on"></div></div>
+
+      <button class="btn btn-primary" style="margin-top:22px;" data-goto="medical">Continue →</button>
+      <div style="height:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ SCREEN 4 — MEDICAL CONDITIONS (existing) ============================================================ -->
+  <div class="phone" id="screen-medical">
+    <div class="statusbar onwhite"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll" style="background:#fff;">
+      <div style="padding:2px 0 14px;">
+        <div class="brand-tag">GLOWcery</div>
+        <h2 style="font-size:24px;font-weight:800;">Any medical conditions?</h2>
+        <div class="sub" style="font-size:13px;">Select all that apply — affects your food plan</div>
+        <div class="step-progress"><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg"></div><div class="step-seg"></div></div>
+      </div>
+      <div style="background:var(--bg); margin:0 -20px; padding:16px 20px 0;">
+
+      <div class="info-banner mint">ℹ️ This information is kept private and used only to personalise recommendations</div>
+
+      <div class="cat-label">Metabolic</div>
+      <div class="check-item selected"><div class="emoji-circle">🩸</div><div class="txt"><div class="t">Type 2 Diabetes / Pre-diabetes</div></div><div class="checkbox">✓</div></div>
+      <div class="check-item"><div class="emoji-circle">🫀</div><div class="txt"><div class="t">High Cholesterol</div></div><div class="checkbox"></div></div>
+      <div class="check-item"><div class="emoji-circle">🦋</div><div class="txt"><div class="t">Thyroid condition</div></div><div class="checkbox"></div></div>
+
+      <div class="cat-label">Heart &amp; Blood Pressure</div>
+      <div class="check-item"><div class="emoji-circle">💓</div><div class="txt"><div class="t">High Blood Pressure</div></div><div class="checkbox"></div></div>
+      <div class="check-item"><div class="emoji-circle">❤️</div><div class="txt"><div class="t">Heart Disease</div></div><div class="checkbox"></div></div>
+
+      <div class="cat-label">Digestive</div>
+      <div class="check-item"><div class="emoji-circle">🫁</div><div class="txt"><div class="t">GERD / Acid Reflux</div></div><div class="checkbox"></div></div>
+      <div class="check-item selected"><div class="emoji-circle">🌀</div><div class="txt"><div class="t">IBS / Irritable Bowel</div></div><div class="checkbox">✓</div></div>
+
+      <div class="cat-label">Joints &amp; Kidneys</div>
+      <div class="check-item"><div class="emoji-circle">🦴</div><div class="txt"><div class="t">Gout</div></div><div class="checkbox"></div></div>
+      <div class="check-item"><div class="emoji-circle">🫘</div><div class="txt"><div class="t">Chronic Kidney Disease</div></div><div class="checkbox"></div></div>
+      <div class="check-item" style="margin-top:6px;"><div class="txt" style="margin-left:4px;"><div class="t">✓ None of the above</div></div></div>
+
+      <button class="btn btn-primary" data-goto="restrictions">Continue →</button>
+      <div style="height:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ SCREEN 5 — FOOD RESTRICTIONS (existing) ============================================================ -->
+  <div class="phone" id="screen-restrictions">
+    <div class="statusbar onwhite"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll" style="background:#fff;">
+      <div style="padding:2px 0 14px;">
+        <div class="brand-tag">GLOWcery</div>
+        <h2 style="font-size:24px;font-weight:800;">Food restrictions</h2>
+        <div class="sub" style="font-size:13px;">Tell us what to avoid in your meal plan</div>
+        <div class="step-progress"><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg"></div></div>
+      </div>
+      <div style="background:var(--bg); margin:0 -20px; padding:16px 20px 0;">
+
+      <div class="field-label">Allergies &amp; Intolerances</div>
+      <div class="row gap8" style="margin-bottom:18px; flex-wrap:wrap;">
+        <div class="chip outline selected">Gluten</div><div class="chip outline selected">Dairy</div><div class="chip outline">Nuts</div><div class="chip outline">Eggs</div><div class="chip outline">Soy</div><div class="chip outline">Shellfish</div><div class="chip outline">Fish</div>
+      </div>
+      <div class="field-label">Dietary Lifestyle</div>
+      <div class="row gap8" style="margin-bottom:18px; flex-wrap:wrap;">
+        <div class="chip outline selected">None</div><div class="chip outline">Vegetarian</div><div class="chip outline">Vegan</div><div class="chip outline">Halal</div><div class="chip outline">Kosher</div><div class="chip outline">Keto</div>
+      </div>
+      <div class="field-label">Foods you dislike</div>
+      <div class="textarea-field" style="color:var(--text-tertiary); margin-bottom:18px;">e.g. mushrooms, cilantro, olives…</div>
+      <div class="field-label">Any other foods you cannot eat</div>
+      <div class="textarea-field" style="color:var(--text-tertiary);">e.g. specific ingredients or dishes…</div>
+
+      <button class="btn btn-primary" style="margin-top:20px;" data-goto="labs">Continue →</button>
+      <div style="height:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ SCREEN 6 — LAB TEST RESULTS (existing) ============================================================ -->
+  <div class="phone" id="screen-labs">
+    <div class="statusbar onwhite"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll" style="background:#fff;">
+      <div style="padding:2px 0 14px;">
+        <div class="brand-tag">GLOWcery</div>
+        <h2 style="font-size:24px;font-weight:800;">Lab test results</h2>
+        <div class="sub" style="font-size:13px;">Optional — enter your values for the most precise plan</div>
+        <div class="step-progress"><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg filled"></div><div class="step-seg filled"></div></div>
+      </div>
+      <div style="background:var(--bg); margin:0 -20px; padding:16px 20px 0;">
+      <div class="step-label">Step 6 of 6</div>
+
+      <div class="info-banner mint">🔬 Enter values from your latest labs — skip if you don't have them</div>
+
+      <div class="lab-row filled"><div class="top"><div class="name">Blood Sugar (Fasting)</div><div class="th">น้ำตาลในเลือด</div></div><div class="inputval"><div class="valbox">95</div><div class="unit">mg/dL</div></div><div class="normal">✓ Normal range</div></div>
+      <div class="lab-row"><div class="top"><div class="name">HbA1c</div><div class="th">ค่าเฉลี่ย 3 เดือน</div></div><div class="inputval"><div class="valbox" style="color:var(--text-tertiary);">—</div><div class="unit">%</div></div></div>
+      <div class="lab-row filled"><div class="top"><div class="name">LDL Cholesterol</div><div class="th">ไขมันเลว</div></div><div class="inputval"><div class="valbox">118</div><div class="unit">mg/dL</div></div><div class="normal">✓ Normal range</div></div>
+      <div class="lab-row"><div class="top"><div class="name">HDL Cholesterol</div><div class="th">ไขมันดี</div></div><div class="inputval"><div class="valbox" style="color:var(--text-tertiary);">—</div><div class="unit">mg/dL</div></div></div>
+      <div class="lab-row"><div class="top"><div class="name">Triglycerides</div><div class="th">ไตรกลีเซอไรด์</div></div><div class="inputval"><div class="valbox" style="color:var(--text-tertiary);">—</div><div class="unit">mg/dL</div></div></div>
+      <div class="lab-row"><div class="top"><div class="name">Vitamin D</div><div class="th">25(OH)D</div></div><div class="inputval"><div class="valbox" style="color:var(--text-tertiary);">—</div><div class="unit">ng/mL</div></div></div>
+      <div class="lab-row"><div class="top"><div class="name">Iron / Ferritin</div><div class="th">เฟอร์ริติน</div></div><div class="inputval"><div class="valbox" style="color:var(--text-tertiary);">—</div><div class="unit">ng/mL</div></div></div>
+      <div class="lab-row"><div class="top"><div class="name">Thyroid (TSH)</div><div class="th">ต่อมไทรอยด์</div></div><div class="inputval"><div class="valbox" style="color:var(--text-tertiary);">—</div><div class="unit">mIU/L</div></div></div>
+
+      <div class="field-label" style="margin-top:8px;">Connected Wearables (optional)</div>
+      <div class="wearable-row"><div class="ic">⌚</div><div class="txt"><div class="t">Apple Watch / Fitbit</div><div class="s">Heart rate, HRV, sleep</div></div><div class="connect-btn">Connect</div></div>
+      <div class="wearable-row"><div class="ic">⚖️</div><div class="txt"><div class="t">Smart Scale</div><div class="s">Daily weight tracking</div></div><div class="connect-btn">Connect</div></div>
+
+      <button class="btn btn-outline" style="margin-top:10px;">Skip — ไม่มีผลแล็บ</button>
+      <button class="btn btn-primary" style="margin-top:12px;" data-goto="checkin">Generate My Plan →</button>
+      <div style="height:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ SCREEN 7 — WEEKLY CHECK-IN (existing) ============================================================ -->
+  <div class="phone" id="screen-checkin">
+    <div class="statusbar dark"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll nopad-top" style="background:#fff;">
+      <div class="checkin-hero">
+        <h2>Weekly Check-in 🌿</h2>
+        <div class="meta">Week 3 · Jun 10–17, 2026</div>
+        <div class="sub">Help us keep your plan on track!</div>
+      </div>
+      <div style="padding-top:6px;">
+      <div class="rating-row">
+        <div class="lbl">Overall Energy Level this week</div>
+        <div class="pentagons"><div class="pentagon filled"></div><div class="pentagon filled"></div><div class="pentagon filled"></div><div class="pentagon filled"></div><div class="pentagon"></div></div>
+      </div>
+      <div class="rating-row">
+        <div class="lbl">Sleep Quality this week</div>
+        <div class="pentagons"><div class="pentagon filled"></div><div class="pentagon filled"></div><div class="pentagon filled"></div><div class="pentagon"></div><div class="pentagon"></div></div>
+      </div>
+      <div class="rating-row">
+        <div class="lbl">Mood &amp; Focus</div>
+        <div class="pentagons"><div class="pentagon filled"></div><div class="pentagon filled"></div><div class="pentagon filled"></div><div class="pentagon filled"></div><div class="pentagon"></div></div>
+      </div>
+
+      <div class="field-label">Meals you didn't enjoy this week</div>
+      <div style="margin-bottom:14px;">
+        <span class="chip-removable">Lentil soup <span class="x">✕</span></span>
+        <span class="chip-removable">Quinoa salad <span class="x">✕</span></span>
+      </div>
+      <div class="add-field">+ Add a meal or ingredient…</div>
+
+      <div class="field-label">Anything else to improve your plan?</div>
+      <div class="textarea-field" style="color:var(--text-tertiary); margin-bottom:20px;">Optional notes…</div>
+
+      <button class="btn btn-primary">Submit Feedback ✓</button>
+      <div style="height:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ SCREEN 8 — SUBSCRIPTION (customer, new) ============================================================ -->
+  <div class="phone" id="screen-subscription">
+    <div class="statusbar"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll">
+      <div class="topbar">
+        <div>
+          <div class="brand-tag">GLOWcery</div>
+          <h2>My Subscription</h2>
+        </div>
+      </div>
+
+      <div class="plan-hero">
+        <div class="top">
+          <div>
+            <div class="plan-meta">Current Plan</div>
+            <div class="plan-name">Premium Wellness Plan</div>
+            <div class="plan-meta">12 meals / week · Auto-renew</div>
+          </div>
+          <div class="status-pill">Active</div>
+        </div>
+        <div class="meals-row">
+          <span class="num">8</span> <span class="lbl">of 12 meals remaining this cycle</span>
+          <div class="hero-progress"><div class="fill" style="width:66%"></div></div>
+        </div>
+      </div>
+
+      <div class="row gap10" style="margin-bottom:16px;">
+        <div class="stat"><div class="label">NEXT BILLING DATE</div><div class="value">Jul 15, 2026</div></div>
+        <div class="stat"><div class="label">BILLING AMOUNT</div><div class="value">฿2,490</div></div>
+      </div>
+
+      <button class="btn btn-primary" style="margin-bottom:10px;">✎ Edit Subscription</button>
+      <button class="btn btn-outline" style="margin-bottom:10px;">⏸ Pause Subscription</button>
+      <button class="btn btn-ghost-danger">✕ Cancel Subscription</button>
+
+      <div class="section-title row between"><span>Subscription History</span><span style="font-size:12px; font-weight:700; color:var(--primary);">View all ›</span></div>
+      <div class="card" style="padding:6px 20px;">
+        <div class="history-row"><div><div class="d">Jun 15, 2026</div><div class="s">Premium Wellness Plan · Paid</div></div><span class="badge green">฿2,490</span></div>
+        <div class="history-row"><div><div class="d">May 15, 2026</div><div class="s">Premium Wellness Plan · Paid</div></div><span class="badge green">฿2,490</span></div>
+        <div class="history-row"><div><div class="d">Apr 15, 2026</div><div class="s">Standard Plan · Paid</div></div><span class="badge green">฿1,890</span></div>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>Home</div>
+      <div class="navitem" data-goto="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Menu</div>
+      <div class="navitem" data-goto="trace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Track</div>
+      <div class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</div>
+    </div>
+  </div>
+
+  <!-- ============================================================ SCREEN 9 — WEEKLY MENU (customer) — merged plan-aware pack builder ============================================================ -->
+  <div class="phone" id="screen-menu">
+    <div class="statusbar"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll">
+      <div class="topbar">
+        <button class="icon-btn" data-goto="subscription">←</button>
+        <div><div class="brand-tag">GLOWcery</div><h2>Weekly Menu</h2><div class="sub">Choose your meals and how many days each — matches your plan</div></div>
+      </div>
+
+      <div class="info-banner mint" style="margin-top:4px;"><span>📦</span><span><b id="planInfoName">Monthly plan</b> · Order and delivery available any day</span></div>
+
+      <!-- Pack mode only: choose pack size (3/5/10). Monthly/Annual skip this — full week (7) is automatic. -->
+      <div id="packModeBlock" style="display:none;">
+        <div class="section-title" style="margin-top:14px;">Pack size</div>
+        <div class="segmented" id="packCountSeg">
+          <div class="seg" data-count="3">3</div><div class="seg selected" data-count="5">5</div><div class="seg" data-count="10">10 🎁</div>
+        </div>
+      </div>
+
+      <div class="pack-progress-card" id="packProgressCard">
+        <div class="pack-progress-top">
+          <span style="font-size:12.5px; font-weight:700; color:var(--primary-dark);">🧺 <span id="packProgressText">0 / 7 meals planned</span></span>
+          <span style="font-size:11px; color:var(--text-secondary); font-weight:600;">This week · Jun 29–Jul 5</span>
+        </div>
+        <div class="pack-progress-track"><div class="pack-progress-fill" id="packProgressFill" style="width:0%;"></div></div>
+      </div>
+
+      <div class="section-title" style="margin-top:0;">Choose your meals</div>
+
+      <div class="meal-card" data-meal="1">
+        <div class="meal-photo" style="background:linear-gradient(135deg,#FBD8C4,#F49E7B);">🐟</div>
+        <div class="meal-body">
+          <h3>Grilled Salmon Power Bowl</h3>
+          <div class="macro-row"><span class="macro">🔥 480 kcal</span><span class="macro">🥩 38g protein</span><span class="macro">🌾 42g carbs</span><span class="macro">🥑 16g fat</span></div>
+          <div class="tag-row"><span class="chip tag-protein">High Protein</span><span class="chip tag-sodium">Low Sodium</span></div>
+          <div class="ingredient-preview">Salmon, quinoa, broccoli, avocado, cherry tomato, lemon dressing…</div>
+          <div class="row between">
+            <button class="btn btn-outline btn-sm">View Detail</button>
+            <div class="qty-stepper">
+              <button class="qty-btn" data-act="dec">–</button>
+              <span class="qty-val">3</span>
+              <button class="qty-btn" data-act="inc">+</button>
+            </div>
+          </div>
+          <div class="qty-label" style="margin-top:8px;">meals this week</div>
+        </div>
+      </div>
+
+      <div class="meal-card" data-meal="2">
+        <div class="meal-photo" style="background:linear-gradient(135deg,#DCEBC9,#AFDD8F);">🥗</div>
+        <div class="meal-body">
+          <h3>Quinoa Power Salad</h3>
+          <div class="macro-row"><span class="macro">🔥 360 kcal</span><span class="macro">🥩 22g protein</span><span class="macro">🌾 48g carbs</span><span class="macro">🥑 11g fat</span></div>
+          <div class="tag-row"><span class="chip tag-veg">Vegetarian</span><span class="chip tag-sugar">Low Sugar</span></div>
+          <div class="ingredient-preview">Quinoa, chickpeas, kale, roasted pumpkin, feta, tahini dressing…</div>
+          <div class="row between">
+            <button class="btn btn-outline btn-sm">View Detail</button>
+            <div class="qty-stepper">
+              <button class="qty-btn" data-act="dec">–</button>
+              <span class="qty-val">2</span>
+              <button class="qty-btn" data-act="inc">+</button>
+            </div>
+          </div>
+          <div class="qty-label" style="margin-top:8px;">meals this week</div>
+        </div>
+      </div>
+
+      <div class="meal-card" data-meal="3">
+        <div class="meal-photo" style="background:linear-gradient(135deg,#FCE7A3,#F6C453);">🍛</div>
+        <div class="meal-body">
+          <h3>Thai Basil Chicken Rice</h3>
+          <div class="macro-row"><span class="macro">🔥 520 kcal</span><span class="macro">🥩 34g protein</span><span class="macro">🌾 58g carbs</span><span class="macro">🥑 14g fat</span></div>
+          <div class="tag-row"><span class="chip tag-protein">High Protein</span></div>
+          <div class="ingredient-preview">Chicken breast, jasmine rice, holy basil, chili, garlic, egg…</div>
+          <div class="row between">
+            <button class="btn btn-outline btn-sm">View Detail</button>
+            <div class="qty-stepper">
+              <button class="qty-btn" data-act="dec">–</button>
+              <span class="qty-val">2</span>
+              <button class="qty-btn" data-act="inc">+</button>
+            </div>
+          </div>
+          <div class="qty-label" style="margin-top:8px;">meals this week</div>
+        </div>
+      </div>
+
+      <div class="meal-card" data-meal="4">
+        <div class="meal-photo" style="background:linear-gradient(135deg,#E3F2E1,#B7DDB0);">🥑</div>
+        <div class="meal-body">
+          <h3>Salmon Salad</h3>
+          <div class="macro-row"><span class="macro">🔥 460 kcal</span><span class="macro">🥩 30g protein</span><span class="macro">🌾 18g carbs</span><span class="macro">🥑 26g fat</span></div>
+          <div class="tag-row"><span class="chip tag-sugar">Vitamin D</span></div>
+          <div class="ingredient-preview">Avocado, spinach, grilled salmon, lemon dressing…</div>
+          <div class="row between">
+            <button class="btn btn-outline btn-sm">View Detail</button>
+            <div class="qty-stepper">
+              <button class="qty-btn" data-act="dec">–</button>
+              <span class="qty-val">0</span>
+              <button class="qty-btn" data-act="inc">+</button>
+            </div>
+          </div>
+          <div class="qty-label" style="margin-top:8px;">meals this week</div>
+        </div>
+      </div>
+
+      <div class="meal-card" data-meal="5">
+        <div class="meal-photo" style="background:linear-gradient(135deg,#F3E5F5,#D8B9E8);">🍲</div>
+        <div class="meal-body">
+          <h3>Tofu &amp; Vegetable Clear Soup</h3>
+          <div class="macro-row"><span class="macro">🔥 310 kcal</span><span class="macro">🥩 18g protein</span><span class="macro">🌾 26g carbs</span><span class="macro">🥑 9g fat</span></div>
+          <div class="tag-row"><span class="chip tag-sodium">Calcium</span></div>
+          <div class="ingredient-preview">Soft tofu, napa cabbage, shiitake, ginger…</div>
+          <div class="row between">
+            <button class="btn btn-outline btn-sm">View Detail</button>
+            <div class="qty-stepper">
+              <button class="qty-btn" data-act="dec">–</button>
+              <span class="qty-val">0</span>
+              <button class="qty-btn" data-act="inc">+</button>
+            </div>
+          </div>
+          <div class="qty-label" style="margin-top:8px;">meals this week</div>
+        </div>
+      </div>
+
+      <div class="section-title">Order Summary</div>
+      <div class="order-card">
+        <div class="order-line"><span>Plan</span><span id="orderPlanLine">Monthly · Full week (7 meals)</span></div>
+        <div class="order-line"><span>Delivery</span><span>Any day you choose</span></div>
+        <div class="order-total"><span class="lbl">This week's total</span><span class="val" id="orderTotalVal">฿903</span></div>
+      </div>
+    </div>
+    <div class="sticky-cta"><button class="btn btn-primary" data-goto="date" id="menuContinueBtn">Continue to Delivery →</button></div>
+  </div>
+
+  <!-- ============================================================ SCREEN 10 — DELIVERY DATE (customer, new) ============================================================ -->
+  <div class="phone" id="screen-date">
+    <div class="statusbar"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll">
+      <div class="topbar">
+        <button class="icon-btn" data-goto="menu">←</button>
+        <div><div class="brand-tag">GLOWcery</div><h2>Delivery Date</h2><div class="sub">7-day meal pack selected · Step 3 of 4</div></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title" style="margin-top:0;">This Week</div>
+        <div class="date-strip">
+          <div class="date-card"><div class="d">MON</div><div class="n">29</div></div>
+          <div class="date-card unavailable"><div class="d">TUE</div><div class="n">30</div></div>
+          <div class="date-card selected"><div class="d">WED</div><div class="n">1</div></div>
+          <div class="date-card"><div class="d">THU</div><div class="n">2</div></div>
+          <div class="date-card"><div class="d">FRI</div><div class="n">3</div></div>
+          <div class="date-card unavailable"><div class="d">SAT</div><div class="n">4</div></div>
+          <div class="date-card unavailable"><div class="d">SUN</div><div class="n">5</div></div>
+        </div>
+        <div class="legend"><div class="item"><span class="dot avail"></span>Available</div><div class="item"><span class="dot unavail"></span>Unavailable</div><div class="item"><span class="dot sel"></span>Selected</div></div>
+      </div>
+
+      <div class="section-title">Next Week</div>
+      <div class="card">
+        <div class="date-strip">
+          <div class="date-card"><div class="d">MON</div><div class="n">6</div></div>
+          <div class="date-card"><div class="d">TUE</div><div class="n">7</div></div>
+          <div class="date-card"><div class="d">WED</div><div class="n">8</div></div>
+          <div class="date-card"><div class="d">THU</div><div class="n">9</div></div>
+          <div class="date-card unavailable"><div class="d">FRI</div><div class="n">10</div></div>
+        </div>
+      </div>
+
+      <div class="arrival-card"><div class="ic">🚚</div><div><div class="t">ESTIMATED ARRIVAL</div><div class="v">Wednesday, Jul 1 — between 10:00 and 12:00</div></div></div>
+    </div>
+    <div class="sticky-cta"><button class="btn btn-primary" data-goto="time">Continue to Delivery Time →</button></div>
+  </div>
+
+  <!-- ============================================================ SCREEN 11 — DELIVERY TIME (customer, new) ============================================================ -->
+  <div class="phone" id="screen-time">
+    <div class="statusbar"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll">
+      <div class="topbar">
+        <button class="icon-btn" data-goto="date">←</button>
+        <div><div class="brand-tag">GLOWcery</div><h2>Delivery Time</h2><div class="sub">Wed, Jul 1 · Step 4 of 4</div></div>
+      </div>
+
+      <div class="card addr-card">
+        <div class="ic">📍</div>
+        <div style="flex:1;"><div class="label">DELIVERY ADDRESS</div><div class="value">123/45 Sukhumvit Rd, Klongtan,<br>Khlong Toei, Bangkok 10110</div></div>
+        <div class="change">Change</div>
+      </div>
+
+      <div class="section-title">Available Time Slots</div>
+      <div class="slot"><div><div class="time">08:00 – 10:00</div><div class="avail">Morning delivery</div></div><div class="radio"></div></div>
+      <div class="slot selected"><div><div class="time">10:00 – 12:00</div><div class="avail">Late morning · Recommended</div></div><div class="radio"></div></div>
+      <div class="slot"><div><div class="time">13:00 – 15:00</div><div class="avail">Afternoon delivery</div></div><div class="radio"></div></div>
+      <div class="slot"><div><div class="time">17:00 – 19:00</div><div class="avail">Evening delivery</div></div><div class="radio"></div></div>
+    </div>
+    <div class="sticky-cta"><button class="btn btn-primary" data-goto="trace">Confirm &amp; Track My Meal →</button></div>
+  </div>
+
+  <!-- ============================================================ SCREEN 12 — MEAL TRACEABILITY + FOOD DETAIL (customer, new) ============================================================ -->
+  <div class="phone" id="screen-trace">
+    <div class="statusbar"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll">
+      <div class="topbar">
+        <button class="icon-btn" data-goto="time">←</button>
+        <div><div class="brand-tag">GLOWcery</div><h2>Meal Traceability</h2><div class="sub">Follow your meal's journey</div></div>
+      </div>
+
+      <div class="card order-mini"><div class="thumb">🐟</div><div><h4>Grilled Salmon Power Bowl</h4><div class="oid">Order #WF-20260701-118</div></div></div>
+
+      <div class="section-title">Journey Timeline</div>
+      <div class="card">
+        <div class="timeline">
+          <div class="tl-item done"><div class="tl-dot">✓</div><div class="tl-card"><div class="tl-top"><span class="tl-stage">Ingredient Source</span><span class="tl-status done">Completed</span></div><div class="tl-meta">Jun 29, 06:10 · Doi Inthanon Organic Farm, Chiang Mai</div></div></div>
+          <div class="tl-item done"><div class="tl-dot">✓</div><div class="tl-card"><div class="tl-top"><span class="tl-stage">Supplier</span><span class="tl-status done">Completed</span></div><div class="tl-meta">Jun 29, 14:20 · Fresh Harvest Supplier Co., Bangkok</div></div></div>
+          <div class="tl-item done"><div class="tl-dot">✓</div><div class="tl-card"><div class="tl-top"><span class="tl-stage">Quality Inspection</span><span class="tl-status done">Passed</span></div><div class="tl-meta">Jun 30, 07:45 · GLOWcery QC Lab, Bang Na</div></div></div>
+          <div class="tl-item done"><div class="tl-dot">✓</div><div class="tl-card"><div class="tl-top"><span class="tl-stage">Kitchen Preparation</span><span class="tl-status done">Completed</span></div><div class="tl-meta">Jul 1, 04:30 · Central Kitchen, Bang Na</div></div></div>
+          <div class="tl-item done"><div class="tl-dot">✓</div><div class="tl-card"><div class="tl-top"><span class="tl-stage">Cooking</span><span class="tl-status done">Completed</span></div><div class="tl-meta">Jul 1, 05:15 · Central Kitchen, Station 4</div></div></div>
+          <div class="tl-item current"><div class="tl-dot">●</div><div class="tl-card"><div class="tl-top"><span class="tl-stage">Packaging</span><span class="tl-status current">In Progress</span></div><div class="tl-meta">Jul 1, 06:40 · Central Kitchen, Packing Line 2</div></div></div>
+          <div class="tl-item upcoming"><div class="tl-dot">6</div><div class="tl-card"><div class="tl-top"><span class="tl-stage">Cold Chain Transportation</span><span class="tl-status upcoming">Pending</span></div><div class="tl-meta">Est. Jul 1, 07:30</div></div></div>
+          <div class="tl-item upcoming"><div class="tl-dot">7</div><div class="tl-card"><div class="tl-top"><span class="tl-stage">Distribution Hub</span><span class="tl-status upcoming">Pending</span></div><div class="tl-meta">Est. Jul 1, 08:15 · Bang Na Hub</div></div></div>
+          <div class="tl-item upcoming"><div class="tl-dot">8</div><div class="tl-card"><div class="tl-top"><span class="tl-stage">Delivery Vehicle</span><span class="tl-status upcoming">Pending</span></div><div class="tl-meta">Est. Jul 1, 09:00</div></div></div>
+          <div class="tl-item upcoming"><div class="tl-dot">9</div><div class="tl-card"><div class="tl-top"><span class="tl-stage">Delivered</span><span class="tl-status upcoming">Pending</span></div><div class="tl-meta">Est. Jul 1, 10:00 – 12:00</div></div></div>
+        </div>
+      </div>
+
+      <div class="section-title">Food Detail</div>
+      <div class="card" style="padding:0; overflow:hidden;">
+        <div class="food-hero">🐟</div>
+        <div style="padding:18px;">
+          <h3 style="font-size:16px; font-weight:800;">Grilled Salmon Power Bowl</h3>
+          <div style="font-size:11.5px; color:var(--text-secondary); margin-top:2px;">Serving size: 1 bowl (420g)</div>
+          <div class="nutri-grid">
+            <div class="nutri-cell"><div class="v">480</div><div class="l">Calories (kcal)</div></div>
+            <div class="nutri-cell"><div class="v">38g</div><div class="l">Protein</div></div>
+            <div class="nutri-cell"><div class="v">42g</div><div class="l">Carbs</div></div>
+            <div class="nutri-cell"><div class="v">16g</div><div class="l">Fat</div></div>
+            <div class="nutri-cell"><div class="v">320mg</div><div class="l">Sodium</div></div>
+            <div class="nutri-cell"><div class="v">4g</div><div class="l">Sugar</div></div>
+          </div>
+          <div class="detail-row"><div class="h">INGREDIENTS</div><div class="txt">Norwegian salmon fillet, quinoa, broccoli, avocado, cherry tomato, red onion, extra virgin olive oil, lemon, sea salt, black pepper.</div></div>
+          <div class="detail-row"><div class="h">ALLERGENS</div><div class="tag-row"><span class="chip allergen">Fish</span><span class="chip allergen">Sesame (trace)</span></div></div>
+          <div class="detail-row"><div class="h">STORAGE INSTRUCTIONS</div><div class="txt">Keep refrigerated at 0–4°C. Consume within 3 days of delivery. Do not freeze.</div></div>
+          <div class="detail-row"><div class="h">REHEATING INSTRUCTIONS</div><div class="txt">Microwave on high for 2–3 minutes, or oven at 180°C for 10 minutes. Stir halfway through.</div></div>
+          <div class="detail-row"><div class="h">EXPIRATION DATE</div><div class="txt">Best before Jul 4, 2026</div></div>
+          <div class="detail-row"><div class="h">PACKAGING INFORMATION</div><div class="txt">Recyclable PP container with vacuum-sealed lid. Cold pack included for cold-chain transport.</div></div>
+        </div>
+      </div>
+      <div style="height:10px;"></div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" data-goto="subscription"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>Home</div>
+      <div class="navitem" data-goto="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Menu</div>
+      <div class="navitem active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Track</div>
+      <div class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</div>
+    </div>
+  </div>
+
+  <!-- ============================================================ SCREEN 13 — CHOOSE PLAN (customer, added) ============================================================ -->
+  <div class="phone" id="screen-plan2">
+    <div class="statusbar"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll">
+      <div class="topbar">
+        <button class="icon-btn" data-goto="subscription">←</button>
+        <div><div class="brand-tag">GLOWcery</div><h2>Choose your plan</h2><div class="sub">Delivered weekly, personalised to your health profile</div></div>
+      </div>
+      <div class="thin-progress"><div class="f" style="width:87.5%;"></div></div>
+
+      <div class="plan-pick" data-plan="pack">
+        <div class="plan-pick-top">
+          <div class="plan-ic" style="background:var(--soft);">🛍️</div>
+          <div class="plan-pick-info"><div class="plan-pick-name">Meal Pack</div><div class="plan-pick-desc">Flexible · No commitment</div></div>
+          <div class="plan-radio"></div>
+        </div>
+        <div class="plan-pick-detail">
+          <div style="font-size:11px; color:var(--text-secondary); margin-bottom:6px;">Number of meals</div>
+          <div class="row gap8" style="margin-bottom:6px; flex-wrap:wrap;"><span class="chip outline">3 meals</span><span class="chip outline selected">5 meals</span><span class="chip outline">10 meals 🎁</span></div>
+          <div class="plan-feat"><span class="tick">✓</span> Pay only for meals you order</div>
+          <div class="plan-feat"><span class="tick">✓</span> 10-meal pack: special discount + gift</div>
+          <div class="plan-price"><span class="main">฿149</span><span class="unit">/ meal</span></div>
+        </div>
+      </div>
+
+      <div class="plan-pick selected" data-plan="monthly">
+        <div class="plan-pick-top">
+          <div class="plan-ic" style="background:#E8F5E9;">📅</div>
+          <div class="plan-pick-info"><div class="plan-pick-name">Monthly</div><div class="plan-pick-desc">Save more · Flexible every week</div></div>
+          <span class="rec-badge">Recommended</span>
+          <div class="plan-radio">✓</div>
+        </div>
+        <div class="plan-pick-detail">
+          <div class="plan-feat"><span class="tick">✓</span> Pay monthly upfront — order or skip anytime</div>
+          <div class="plan-feat"><span class="tick">✓</span> Choose number of meals each week</div>
+          <div class="plan-feat"><span class="tick">✓</span> 13% cheaper than Meal Pack</div>
+          <div class="plan-price"><span class="main">฿129</span><span class="unit">/ meal</span><span class="save">Save 13%</span></div>
+        </div>
+      </div>
+
+      <div class="plan-pick" data-plan="yearly">
+        <div class="plan-pick-top">
+          <div class="plan-ic" style="background:#F3E5F5;">🏆</div>
+          <div class="plan-pick-info"><div class="plan-pick-name">Annual</div><div class="plan-pick-desc">Best value · Pause up to 4 weeks</div></div>
+          <div class="plan-radio"></div>
+        </div>
+        <div class="plan-pick-detail">
+          <div class="plan-feat"><span class="tick">✓</span> Pay annually upfront — order or skip anytime</div>
+          <div class="plan-feat"><span class="tick">✓</span><span><b>Pause up to 4 weeks</b> — end date extends automatically</span></div>
+          <div class="plan-feat"><span class="tick">✓</span> Priority delivery every week</div>
+          <div class="plan-feat"><span class="tick">✓</span> Save up to 27%</div>
+          <div class="plan-price"><span class="main">฿109</span><span class="unit">/ meal</span><span class="save">Save 27%</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="sticky-cta"><button class="btn btn-primary" data-goto="menu">Continue →</button></div>
+  </div>
+
+  <!-- ============================================================ SCREEN 14 — FOOD ANALYSIS (customer, added) ============================================================ -->
+  <div class="phone" id="screen-food">
+    <div class="statusbar"><span>9:41</span><span class="icons">●●●&nbsp;📶&nbsp;🔋</span></div>
+    <div class="screen-scroll">
+      <div class="topbar">
+        <button class="icon-btn" data-goto="menu">←</button>
+        <div><div class="brand-tag">GLOWcery</div><h2>Food Analysis</h2><div class="sub">Today's nutrition breakdown</div></div>
+      </div>
+
+      <div style="display:flex; background:#F0F0F0; border-radius:12px; padding:3px; gap:2px; margin-bottom:16px;">
+        <div class="subtab" style="flex:1; text-align:center; padding:7px 0; border-radius:10px; font-size:12px; font-weight:600; color:#888; cursor:pointer;">Week</div>
+        <div class="subtab active" style="flex:1; text-align:center; padding:7px 0; border-radius:10px; font-size:12px; font-weight:700; color:var(--primary); background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.08); cursor:pointer;">Today</div>
+        <div class="subtab" style="flex:1; text-align:center; padding:7px 0; border-radius:10px; font-size:12px; font-weight:600; color:#888; cursor:pointer;">Month</div>
+      </div>
+
+      <div class="ring-card">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 100 100"><circle class="ring-bg" cx="50" cy="50" r="45"/><circle class="ring-fg" cx="50" cy="50" r="45"/></svg>
+          <div class="ring-center"><span class="n">1,420</span><span class="l">kcal</span></div>
+        </div>
+        <div class="ring-info">
+          <h3>Calories consumed</h3>
+          <div class="goal">Goal 1,800 kcal</div>
+          <div class="sub">380 kcal remaining</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title row between" style="margin-top:0;"><span>Nutrition Score</span><span style="font-size:12px; color:var(--primary); font-weight:700;">Details →</span></div>
+        <div class="score-wrap">
+          <div class="score-num">76</div>
+          <div class="score-bar-wrap">
+            <div style="font-size:11px; color:var(--text-secondary);">Daily food quality</div>
+            <div class="score-bar-bg"><div class="score-bar-fill" style="width:76%;"></div></div>
+            <div style="font-size:11.5px; color:var(--primary-dark); font-weight:700;">Good — add leafy greens to boost your score</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title row between" style="margin-top:0;"><span>Macronutrients</span><span style="font-size:12px; color:var(--primary); font-weight:700;">View all</span></div>
+        <div class="macro-grid">
+          <div class="macro-item"><div style="font-size:11px; color:var(--text-secondary); font-weight:600;">Carbs</div><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:72%; background:var(--primary);"></div></div><div class="macro-val">162<span style="font-size:10px; color:var(--text-tertiary); font-weight:400;">g</span></div><div class="macro-goal">Goal 225g</div></div>
+          <div class="macro-item"><div style="font-size:11px; color:var(--text-secondary); font-weight:600;">Protein</div><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:58%; background:#1D4ED8;"></div></div><div class="macro-val">82<span style="font-size:10px; color:var(--text-tertiary); font-weight:400;">g</span></div><div class="macro-goal">Goal 140g</div></div>
+          <div class="macro-item"><div style="font-size:11px; color:var(--text-secondary); font-weight:600;">Fat</div><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:45%; background:var(--warning);"></div></div><div class="macro-val">38<span style="font-size:10px; color:var(--text-tertiary); font-weight:400;">g</span></div><div class="macro-goal">Goal 60g</div></div>
+          <div class="macro-item"><div style="font-size:11px; color:var(--text-secondary); font-weight:600;">Fiber</div><div class="macro-bar-bg"><div class="macro-bar-fill" style="width:30%; background:#7B1FA2;"></div></div><div class="macro-val">8<span style="font-size:10px; color:var(--text-tertiary); font-weight:400;">g</span></div><div class="macro-goal">Goal 25g</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title row between" style="margin-top:0;"><span>Today's Meals</span><span style="font-size:12px; color:var(--primary); font-weight:700;">+ Add</span></div>
+        <div class="meal-row"><div class="ic" style="background:#FFF8E1;">🌅</div><div class="info"><div class="nm">Breakfast</div><div class="ds">Oatmeal, boiled egg, banana</div></div><span class="kc">420 kcal</span></div>
+        <div class="meal-row"><div class="ic" style="background:#E9F2FF;">☀️</div><div class="info"><div class="nm">Lunch</div><div class="ds">Brown rice, grilled chicken, veggies</div></div><span class="kc">580 kcal</span></div>
+        <div class="meal-row"><div class="ic" style="background:#F3E5F5;">🌙</div><div class="info"><div class="nm">Dinner</div><div class="ds">Tom yum goong, steamed rice</div></div><span class="kc">420 kcal</span></div>
+        <div class="meal-row"><div class="ic" style="background:var(--soft);">🍎</div><div class="info"><div class="nm">Snack</div><div class="ds">Apple, almonds</div></div><span class="kc" style="color:var(--primary); font-size:18px;">+</span></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title" style="margin-top:0;">Vitamins &amp; Minerals</div>
+        <div class="nutrient-row"><span class="nutrient-name">Vitamin C</span><div class="nutrient-bar-bg"><div class="nutrient-bar-fill" style="width:88%; background:var(--primary);"></div></div><span class="nutrient-val">88 mg</span></div>
+        <div class="nutrient-row"><span class="nutrient-name">Vitamin D</span><div class="nutrient-bar-bg"><div class="nutrient-bar-fill" style="width:32%; background:var(--warning);"></div></div><span class="nutrient-val">5 μg</span></div>
+        <div class="nutrient-row"><span class="nutrient-name">Calcium</span><div class="nutrient-bar-bg"><div class="nutrient-bar-fill" style="width:61%; background:#1D4ED8;"></div></div><span class="nutrient-val">610 mg</span></div>
+        <div class="nutrient-row"><span class="nutrient-name">Iron</span><div class="nutrient-bar-bg"><div class="nutrient-bar-fill" style="width:47%; background:var(--danger);"></div></div><span class="nutrient-val">8 mg</span></div>
+        <div class="nutrient-row"><span class="nutrient-name">Potassium</span><div class="nutrient-bar-bg"><div class="nutrient-bar-fill" style="width:70%; background:#7B1FA2;"></div></div><span class="nutrient-val">2,800 mg</span></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title row between" style="margin-top:0;"><span>Water Intake</span><span style="font-size:12.5px; color:#1D4ED8; font-weight:700;">1.6 / 2.5 L</span></div>
+        <div class="water-row">
+          <div class="water-glass filled">💧</div><div class="water-glass filled">💧</div><div class="water-glass filled">💧</div><div class="water-glass filled">💧</div><div class="water-glass filled">💧</div><div class="water-glass filled">💧</div><div class="water-glass filled">💧</div>
+          <div class="water-glass empty">💧</div><div class="water-glass empty">💧</div><div class="water-glass empty">💧</div>
+          <span style="font-size:11px; color:var(--text-tertiary); margin-left:4px;">+3 glasses</span>
+        </div>
+      </div>
+
+      <div class="card" style="background:var(--soft); border:none;">
+        <div class="row gap8" style="margin-bottom:10px;"><span style="font-size:18px;">🤖</span><span style="font-size:13.5px; font-weight:800; color:var(--primary-dark);">AI Insight</span><span style="font-size:9px; font-weight:700; padding:2px 7px; border-radius:6px; background:var(--primary); color:#fff; text-transform:uppercase; letter-spacing:.4px;">Smart</span></div>
+        <div class="insight-item"><span class="dot" style="background:var(--danger);"></span><span>Fiber is 17g below goal — try adding <b>broccoli or black beans</b> at dinner</span></div>
+        <div class="insight-item"><span class="dot" style="background:var(--warning);"></span><span>Vitamin D is low — get 15 minutes of morning sun or eat salmon</span></div>
+        <div class="insight-item" style="margin-bottom:0;"><span class="dot" style="background:var(--primary);"></span><span>Protein intake is on track! Supports muscle recovery after exercise</span></div>
+      </div>
+      <div style="height:6px;"></div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" data-goto="subscription"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>Home</div>
+      <div class="navitem active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8 2 4 5.5 4 10c0 6 8 12 8 12s8-6 8-12c0-4.5-4-8-8-8z"/><circle cx="12" cy="10" r="3"/></svg>Nutrition</div>
+      <div class="navitem" data-goto="trace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Track</div>
+      <div class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</div>
+    </div>
+  </div>
+
+</div>
+<div class="flow-note">Prototype harness for review only — tabs above and in-screen taps (back arrows, bottom nav, Continue buttons, meal cards, dates, time slots) all navigate live.</div>
+
+<script>
+  const screens = ['biometric','goals','lifestyle','medical','restrictions','labs','checkin','subscription','menu','date','time','trace','plan2','food'];
+  function showScreen(name){
+    screens.forEach(s=>{ document.getElementById('screen-'+s).classList.toggle('active', s===name); });
+    document.querySelectorAll('.tab').forEach(t=>{ t.classList.toggle('active', t.dataset.screen===name); });
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  document.querySelectorAll('[data-goto]').forEach(el=>{ el.addEventListener('click', ()=> showScreen(el.dataset.goto)); });
+  document.querySelectorAll('.tab').forEach(el=>{ el.addEventListener('click', ()=> showScreen(el.dataset.screen)); });
+
+  document.querySelectorAll('.day-pill').forEach(p=>{ p.addEventListener('click', ()=>{ p.parentElement.querySelectorAll('.day-pill').forEach(x=>x.classList.remove('active')); p.classList.add('active'); }); });
+  document.querySelectorAll('.date-card').forEach(d=>{ if(d.classList.contains('unavailable')) return; d.addEventListener('click', ()=>{ document.querySelectorAll('.date-card').forEach(x=>x.classList.remove('selected')); d.classList.add('selected'); }); });
+  document.querySelectorAll('.slot').forEach(s=>{ s.addEventListener('click', ()=>{ document.querySelectorAll('.slot').forEach(x=>x.classList.remove('selected')); s.classList.add('selected'); }); });
+  document.querySelectorAll('.option-card').forEach(o=>{ o.addEventListener('click', ()=>{ o.parentElement.querySelectorAll('.option-card').forEach(x=>x.classList.remove('selected')); o.classList.add('selected'); }); });
+  document.querySelectorAll('.segmented').forEach(group=>{ group.querySelectorAll('.seg').forEach(s=>{ s.addEventListener('click', ()=>{ group.querySelectorAll('.seg').forEach(x=>x.classList.remove('selected')); s.classList.add('selected'); }); }); });
+  document.querySelectorAll('.check-item').forEach(c=>{ if(!c.querySelector('.checkbox')) return; c.addEventListener('click', ()=>{ c.classList.toggle('selected'); c.querySelector('.checkbox').textContent = c.classList.contains('selected') ? '✓' : ''; }); });
+  document.querySelectorAll('.chip.outline').forEach(c=>{ c.addEventListener('click', ()=> c.classList.toggle('selected')); });
+  document.querySelectorAll('.switch').forEach(s=>{ s.addEventListener('click', ()=> s.classList.toggle('on')); });
+  document.querySelectorAll('.subtab').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      t.parentElement.querySelectorAll('.subtab').forEach(x=>{ x.classList.remove('active'); x.style.background='transparent'; x.style.color='#888'; x.style.fontWeight='600'; x.style.boxShadow='none'; });
+      t.classList.add('active'); t.style.background='#fff'; t.style.color='var(--primary)'; t.style.fontWeight='700'; t.style.boxShadow='0 1px 4px rgba(0,0,0,.08)';
+    });
+  });
+  document.querySelectorAll('.plan-pick').forEach(p=>{
+    p.addEventListener('click', ()=>{
+      p.parentElement.querySelectorAll('.plan-pick').forEach(x=>{ x.classList.remove('selected'); x.querySelector('.plan-radio').textContent=''; });
+      p.classList.add('selected'); p.querySelector('.plan-radio').textContent='✓';
+      if(p.dataset.plan){ wfPlan = p.dataset.plan; renderMenuScreen(); }
+    });
+  });
+
+  /* ===================== Screen 9 — unified plan-aware weekly meal-pack builder ===================== */
+  const MEAL_RATE = {pack:149, monthly:129, yearly:109};
+  let wfPlan = 'monthly';
+  let wfPackCount = 5;
+
+  function getMenuQtyTotal(){
+    return Array.from(document.querySelectorAll('#screen-menu .qty-val')).reduce((sum, el)=> sum + (parseInt(el.textContent, 10) || 0), 0);
+  }
+
+  function renderMenuScreen(){
+    const isPack = wfPlan === 'pack';
+    const packBlock = document.getElementById('packModeBlock');
+    if(packBlock) packBlock.style.display = isPack ? '' : 'none';
+
+    const planName = wfPlan === 'monthly' ? 'Monthly' : (wfPlan === 'yearly' ? 'Annual' : 'Meal Pack');
+    const planInfoName = document.getElementById('planInfoName');
+    if(planInfoName) planInfoName.textContent = planName + ' plan';
+
+    const target = isPack ? wfPackCount : 7;
+    const total = getMenuQtyTotal();
+    const card = document.getElementById('packProgressCard');
+    const text = document.getElementById('packProgressText');
+    const fill = document.getElementById('packProgressFill');
+    if(card && text && fill){
+      const pct = Math.min(100, Math.round((total / target) * 100));
+      fill.style.width = pct + '%';
+      if(total === target){
+        card.classList.remove('warn');
+        text.textContent = total + ' / ' + target + ' meals planned — your ' + (isPack ? 'pack' : 'week') + ' is fully covered ✓';
+      } else if(total > target){
+        card.classList.add('warn');
+        text.textContent = total + ' / ' + target + ' meals planned — remove ' + (total - target) + ' to fit';
+      } else {
+        card.classList.add('warn');
+        text.textContent = total + ' / ' + target + ' meals planned — add ' + (target - total) + ' more';
+      }
+    }
+    document.querySelectorAll('#screen-menu .meal-card').forEach(mc=>{
+      const q = parseInt(mc.querySelector('.qty-val').textContent, 10) || 0;
+      mc.classList.toggle('zero-qty', q === 0);
+    });
+
+    const rate = MEAL_RATE[wfPlan];
+    const planLineEl = document.getElementById('orderPlanLine');
+    const totalEl = document.getElementById('orderTotalVal');
+    if(planLineEl) planLineEl.textContent = isPack ? ('Meal Pack · ' + wfPackCount + ' meals') : (planName + ' · Full week (7 meals)');
+    if(totalEl) totalEl.textContent = '฿' + (rate * total).toLocaleString();
+  }
+
+  document.querySelectorAll('#screen-menu .qty-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const valEl = btn.parentElement.querySelector('.qty-val');
+      let v = parseInt(valEl.textContent, 10) || 0;
+      v = btn.dataset.act === 'inc' ? Math.min(20, v+1) : Math.max(0, v-1);
+      valEl.textContent = v;
+      renderMenuScreen();
+    });
+  });
+  document.querySelectorAll('#packCountSeg .seg').forEach(seg=>{
+    seg.addEventListener('click', ()=>{
+      wfPackCount = parseInt(seg.dataset.count, 10);
+      renderMenuScreen();
+    });
+  });
+  renderMenuScreen();
+  document.querySelectorAll('.water-glass').forEach(g=>{
+    g.addEventListener('click', ()=> g.classList.toggle('filled') || g.classList.toggle('empty'));
+  });
+  document.querySelectorAll('.pentagons').forEach(group=>{
+    const pentagons = Array.from(group.children);
+    pentagons.forEach((p,i)=>{ p.addEventListener('click', ()=>{ pentagons.forEach((x,j)=> x.classList.toggle('filled', j<=i)); }); });
+  });
+</script>
+</body>
+</html>
